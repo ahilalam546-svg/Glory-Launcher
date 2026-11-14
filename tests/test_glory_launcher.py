@@ -22,6 +22,11 @@ class GloryManifestAndResources(unittest.TestCase):
         build = (ANDROID / "build_apk.py").read_text(encoding="utf-8")
         self.assertIn('LABEL = "Glory Launcher"', build)
         self.assertIn('VARIANTS = {"dev": (DEV_SUFFIX, ""), "preview": (".preview", "")}', build)
+        self.assertIn('glory-launcher{', build)
+        self.assertNotIn('apk = out / f"starling', build)
+        workflow = (ROOT / ".github/workflows/android.yml").read_text(encoding="utf-8")
+        self.assertIn("name: glory-launcher-apk-${{ matrix.abi }}", workflow)
+        self.assertIn("path: target/android/glory-launcher-*.apk", workflow)
 
         manifest = ET.parse(ANDROID / "AndroidManifest.xml").getroot()
         app = manifest.find("application")
@@ -38,6 +43,23 @@ class GloryManifestAndResources(unittest.TestCase):
             data = icon.read_bytes()
             self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
             self.assertEqual(struct.unpack(">II", data[16:24]), (expected, expected))
+
+    def test_home_omits_every_marked_dashboard_card_and_diagnostics_tab(self):
+        source = (JAVA_DIR / "LauncherActivity.java").read_text(encoding="utf-8")
+        home = source.split("private View buildHomeTab() {", 1)[1].split(
+            "// ---- Tab 1:", 1
+        )[0]
+        for removed in (
+            "Minecraft Java 26.3",
+            "No Worlds Yet",
+            "Multiplayer",
+            "makeBottomCard",
+            "Touch Controls & Diagnostics",
+            "glory_nav_diagnostics",
+        ):
+            self.assertNotIn(removed, source if removed == "glory_nav_diagnostics" else home)
+        self.assertNotIn("DIAGNOSTICS", source)
+        self.assertIn("R.string.glory_launch_game", home)
 
     def test_launcher_activity_runs_as_persistent_landscape_dashboard(self):
         manifest = ET.parse(ANDROID / "AndroidManifest.xml").getroot()

@@ -1,5 +1,5 @@
 name: android
-# All four Starling APKs, on GitHub's runners: branch pushes and pull requests build each ABI and keep it
+# All four Glory Launcher APKs, on GitHub's runners: branch pushes and pull requests build each ABI and keep it
 # as an artifact, signed with the debug key in STARLING_DEBUG_KEYSTORE_BASE64 so one installs over another (a
 # throwaway key where that secret is missing, as in a fork's pull request). A tag v* signs it with the release key held
 # in the secrets of the `release` environment (STARLING_KEYSTORE_BASE64, STARLING_KEY_ALIAS, STARLING_STORE_PASSWORD,
@@ -8,7 +8,7 @@ name: android
 #
 # The release key is starling-client/starling's, in its `release` environment, which only the protected `starling`
 # branch and v* tags reach (a ruleset lets only admins push those tags); JuanLuci/starling held it before. Every other
-# build, and every build elsewhere, is Starling Preview (io.github.juanluci.starling.preview, build_apk.py --preview),
+# build, and every build elsewhere, is Glory Launcher Preview (io.github.juanluci.starling.preview, build_apk.py --preview),
 # installed beside the release and signed with the repository's own test key in STARLING_DEBUG_KEYSTORE_BASE64 (alias
 # horizon-debug, password android); a tag elsewhere publishes nothing.
 on:
@@ -133,13 +133,13 @@ jobs:
           done
           bash packaging/android/native_build.sh . "$RUNNER_TEMP/native" "${bundles[@]}"
           mkdir -p target/android
-          for apk in "$RUNNER_TEMP"/native/starling-*.apk; do
+          for apk in "$RUNNER_TEMP"/native/glory-launcher-*.apk; do
             cp "$apk" "target/android/$(basename "${apk%.apk}")-$(echo $MODS | tr ' ' '-').apk"
           done
       - uses: actions/upload-artifact@v4
         with:
-          name: starling-apk-${{ matrix.abi }}
-          path: target/android/starling-*.apk
+          name: glory-launcher-apk-${{ matrix.abi }}
+          path: target/android/glory-launcher-*.apk
           if-no-files-found: error
           # A test build with the release key installs over a release: anyone may download a public
           # repository's artifacts, so it goes after a day.
@@ -165,7 +165,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
         with:
-          pattern: starling-apk-*
+          pattern: glory-launcher-apk-*
           path: target/android
           merge-multiple: true
       - name: Check all release APKs and build shared visuals
@@ -178,9 +178,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" target/android/starling-*.apk \
+          gh release create "$GITHUB_REF_NAME" target/android/glory-launcher-*.apk \
             target/android/StarlingVisuals.zip \
-            --title "Starling $GITHUB_REF_NAME" --notes-file packaging/android/release-notes.md \
+            --title "Glory Launcher $GITHUB_REF_NAME" --notes-file packaging/android/release-notes.md \
             --latest
       # The release's game with the sets of native-mods/prebuilt.txt (a release made with this token
       # starts no other workflow by itself; a dispatch does).

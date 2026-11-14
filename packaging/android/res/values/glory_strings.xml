@@ -6,11 +6,8 @@
     <string name="glory_nav_mods">Mods</string>
     <string name="glory_nav_shaders">Shaders</string>
     <string name="glory_nav_controls">Controls</string>
-    <string name="glory_nav_diagnostics">Diagnostics</string>
     <string name="glory_launch_game">PLAY</string>
     <string name="glory_complete_setup">PLAY</string>
-    <string name="glory_status_ready">Minecraft Java 26.3 Ready</string>
-    <string name="glory_status_setup">Minecraft Java 26.3 Setup Required</string>
     <string name="glory_import_action">+ Import</string>
     <string name="glory_import_success">Staged %1$s for install on next launch.</string>
     <string name="glory_restarting">Opening the world with its mods…</string>

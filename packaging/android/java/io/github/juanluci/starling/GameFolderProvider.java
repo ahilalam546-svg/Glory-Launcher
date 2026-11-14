@@ -50,7 +50,7 @@ public final class GameFolderProvider extends DocumentsProvider {
         return getContext().getPackageName() + ".documents";
     }
 
-    /** The app's name, as the phone lists it: Starling, Starling Preview... */
+    /** The user-facing app name is Glory Launcher across build variants. */
     private String title() {
         Context context = getContext();
         return context.getApplicationInfo().loadLabel(context.getPackageManager()).toString();

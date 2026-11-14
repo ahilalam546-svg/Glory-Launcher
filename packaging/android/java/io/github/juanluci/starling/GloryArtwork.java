@@ -34,11 +34,7 @@ final class GloryArtwork {
         WORLDS,
         MODS,
         SHADERS,
-        CONTROLS,
-        DIAGNOSTICS,
-        WRENCH,
-        STAR,
-        SLIDERS
+        CONTROLS
     }
 
     static int dp(Context context, float value) {
@@ -273,54 +269,6 @@ final class GloryArtwork {
                     canvas.drawLine(8.5f, 10.5f, 8.5f, 14.5f, paint);
                     canvas.drawPoint(15f, 11.5f, paint);
                     canvas.drawPoint(17.5f, 13.5f, paint);
-                    break;
-                }
-                case DIAGNOSTICS: {
-                    Path p = new Path();
-                    p.moveTo(3f, 13f);
-                    p.lineTo(7.5f, 13f);
-                    p.lineTo(10f, 6.5f);
-                    p.lineTo(14f, 18f);
-                    p.lineTo(16.8f, 13f);
-                    p.lineTo(21f, 13f);
-                    canvas.drawPath(p, paint);
-                    break;
-                }
-                case WRENCH: {
-                    Path p = new Path();
-                    p.moveTo(14.5f, 5.5f);
-                    p.lineTo(18.5f, 9.5f);
-                    p.moveTo(19f, 5f);
-                    p.lineTo(15.5f, 8.5f);
-                    p.lineTo(6.5f, 17.5f);
-                    p.lineTo(4.5f, 19.5f);
-                    canvas.drawPath(p, paint);
-                    canvas.drawCircle(16.5f, 7.5f, 3.8f, paint);
-                    break;
-                }
-                case STAR: {
-                    Path p = new Path();
-                    p.moveTo(12f, 3.5f);
-                    p.lineTo(14.4f, 9.3f);
-                    p.lineTo(20.5f, 9.8f);
-                    p.lineTo(15.8f, 13.9f);
-                    p.lineTo(17.3f, 20f);
-                    p.lineTo(12f, 16.7f);
-                    p.lineTo(6.7f, 20f);
-                    p.lineTo(8.2f, 13.9f);
-                    p.lineTo(3.5f, 9.8f);
-                    p.lineTo(9.6f, 9.3f);
-                    p.close();
-                    canvas.drawPath(p, paint);
-                    break;
-                }
-                case SLIDERS: {
-                    canvas.drawLine(4f, 7f, 20f, 7f, paint);
-                    canvas.drawLine(4f, 12f, 20f, 12f, paint);
-                    canvas.drawLine(4f, 17f, 20f, 17f, paint);
-                    canvas.drawCircle(9f, 7f, 2f, paint);
-                    canvas.drawCircle(15f, 12f, 2f, paint);
-                    canvas.drawCircle(10f, 17f, 2f, paint);
                     break;
                 }
             }

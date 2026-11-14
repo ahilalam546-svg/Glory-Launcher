@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.graphics.Typeface;
@@ -34,7 +33,6 @@ import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,7 +43,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.util.Date;
-import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -53,7 +50,7 @@ import java.util.concurrent.Executors;
  * Glory Launcher dashboard in the isolated `:launcher` process.
  *
  * <p>Serves as the app entry screen before loading native Vulkan/wgpu libraries: displays saved
- * worlds, servers, mods, shader settings, touch controls, profile switching, and diagnostics, while
+ * worlds, servers, mods, shader settings, touch controls, and profile switching, while
  * preserving Starling's restart handoff (`AFTER`), crash recovery (`StartupRecovery`), and
  * incoming file imports (`ACTION_VIEW` / `ACTION_SEND`).
  */
@@ -62,15 +59,13 @@ public final class LauncherActivity extends Activity {
     static final String AFTER = "io.github.juanluci.starling.AFTER";
 
     private static final int PICK_IMPORT = 101;
-    private static final int PICK_HORIZON = 102;
 
     private enum Tab {
         HOME,
         WORLDS,
         MODS,
         SHADERS,
-        CONTROLS,
-        DIAGNOSTICS
+        CONTROLS
     }
 
     private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
@@ -183,10 +178,6 @@ public final class LauncherActivity extends Activity {
         Uri uri = data.getData();
         if (requestCode == PICK_IMPORT) {
             handleIncomingUri(uri);
-        } else if (requestCode == PICK_HORIZON) {
-            HorizonImport.start(this, uri);
-            pendingImportBanner = "Importing worlds & packs from Horizon Android…";
-            refreshSnapshot();
         }
     }
 
@@ -214,12 +205,6 @@ public final class LauncherActivity extends Activity {
         header.addView(titleView, titleLp);
 
         storageBadgeView = makeBadgePill("App Storage", false);
-        storageBadgeView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectTab(Tab.DIAGNOSTICS);
-            }
-        });
         LinearLayout.LayoutParams storageLp = new LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         storageLp.rightMargin = dp(8);
@@ -292,16 +277,14 @@ public final class LauncherActivity extends Activity {
             R.string.glory_nav_worlds,
             R.string.glory_nav_mods,
             R.string.glory_nav_shaders,
-            R.string.glory_nav_controls,
-            R.string.glory_nav_diagnostics
+            R.string.glory_nav_controls
         };
         GloryArtwork.IconKind[] icons = {
             GloryArtwork.IconKind.HOME,
             GloryArtwork.IconKind.WORLDS,
             GloryArtwork.IconKind.MODS,
             GloryArtwork.IconKind.SHADERS,
-            GloryArtwork.IconKind.CONTROLS,
-            GloryArtwork.IconKind.DIAGNOSTICS
+            GloryArtwork.IconKind.CONTROLS
         };
 
         navRows = new LinearLayout[tabs.length];
@@ -491,9 +474,6 @@ public final class LauncherActivity extends Activity {
             case CONTROLS:
                 view = buildControlsTab();
                 break;
-            case DIAGNOSTICS:
-                view = buildDiagnosticsTab();
-                break;
             case HOME:
             default:
                 view = buildHomeTab();
@@ -506,373 +486,39 @@ public final class LauncherActivity extends Activity {
     // ---- Tab 0: HOME (Exact layout & aesthetic of Option 1) ----
 
     private View buildHomeTab() {
-        ScrollView scroll = new ScrollView(this);
-        scroll.setFillViewport(true);
-        scroll.setVerticalScrollBarEnabled(false);
+        LinearLayout home = new LinearLayout(this);
+        home.setOrientation(LinearLayout.VERTICAL);
 
-        LinearLayout col = new LinearLayout(this);
-        col.setOrientation(LinearLayout.VERTICAL);
-
-        // 1. Voxel Mountain Sunset Hero Banner
+        // Keep the hero and primary Play action; omit the marked status pills and shortcut cards.
         GloryArtwork.HeroLandscapeView hero = new GloryArtwork.HeroLandscapeView(this);
-        LinearLayout.LayoutParams heroLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1.15f);
         hero.setMinimumHeight(dp(108));
-        heroLp.bottomMargin = dp(10);
-        col.addView(hero, heroLp);
+        LinearLayout.LayoutParams heroLp = new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
+        heroLp.bottomMargin = dp(14);
+        home.addView(hero, heroLp);
 
-        // 2. Three-pill Status + Quick Resume Strip
-        LinearLayout pillRow = new LinearLayout(this);
-        pillRow.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout.LayoutParams pillRowLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        pillRowLp.bottomMargin = dp(10);
-
-        // Pill 1: Ready status
-        LinearLayout readyPill = makeGlassPill();
-        View dot = new View(this);
-        GradientDrawable dotDrawable = new GradientDrawable();
-        dotDrawable.setShape(GradientDrawable.OVAL);
-        dotDrawable.setColor(snapshot.resourcesPrepared
-                ? color(R.color.glory_emerald)
-                : color(R.color.glory_amber));
-        dot.setBackground(dotDrawable);
-        LinearLayout.LayoutParams dotLp = new LinearLayout.LayoutParams(dp(9), dp(9));
-        dotLp.rightMargin = dp(8);
-        readyPill.addView(dot, dotLp);
-
-        TextView readyText = text(
-                snapshot.resourcesPrepared
-                        ? getString(R.string.glory_status_ready)
-                        : getString(R.string.glory_status_setup),
-                12,
-                color(R.color.glory_ink),
-                true);
-        readyText.setSingleLine(true);
-        readyText.setEllipsize(TextUtils.TruncateAt.END);
-        readyPill.addView(readyText);
-        readyPill.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!snapshot.resourcesPrepared) {
-                    launchGameFresh();
-                } else {
-                    selectTab(Tab.DIAGNOSTICS);
-                }
-            }
-        });
-        LinearLayout.LayoutParams p1Lp = new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.MATCH_PARENT, 1.15f);
-        p1Lp.rightMargin = dp(8);
-        pillRow.addView(readyPill, p1Lp);
-
-        // Pill 2: Quick-resume World
-        final GloryData.WorldSummary topWorld =
-                snapshot.worlds.isEmpty() ? null : snapshot.worlds.get(0);
-        LinearLayout worldPill = makeGlassPill();
-        GloryArtwork.ThumbnailView worldThumb =
-                new GloryArtwork.ThumbnailView(this, GloryArtwork.ThumbnailView.KIND_WORLD);
-        if (topWorld != null) {
-            worldThumb.setWorldIcon(topWorld.iconFile);
-        }
-        LinearLayout.LayoutParams thumbLp = new LinearLayout.LayoutParams(dp(26), dp(26));
-        thumbLp.rightMargin = dp(8);
-        worldPill.addView(worldThumb, thumbLp);
-
-        LinearLayout worldMeta = new LinearLayout(this);
-        worldMeta.setOrientation(LinearLayout.VERTICAL);
-        TextView worldTitle = text(
-                topWorld != null ? topWorld.levelName : "No Worlds Yet",
-                12,
-                color(R.color.glory_ink),
-                true);
-        worldTitle.setSingleLine(true);
-        worldTitle.setEllipsize(TextUtils.TruncateAt.END);
-        TextView worldSub = text(
-                topWorld != null ? ("Resume " + topWorld.modeLabel()) : "Tap to create or browse",
-                10,
-                color(R.color.glory_ink_soft),
-                false);
-        worldSub.setSingleLine(true);
-        worldMeta.addView(worldTitle);
-        worldMeta.addView(worldSub);
-        worldPill.addView(worldMeta);
-        worldPill.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (topWorld != null && snapshot.resourcesPrepared) {
-                    launchWorld(topWorld.folderName);
-                } else {
-                    selectTab(Tab.WORLDS);
-                }
-            }
-        });
-        LinearLayout.LayoutParams p2Lp = new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-        p2Lp.rightMargin = dp(8);
-        pillRow.addView(worldPill, p2Lp);
-
-        // Pill 3: Quick-resume Server
-        final GloryData.ServerSummary topServer =
-                snapshot.servers.isEmpty() ? null : snapshot.servers.get(0);
-        LinearLayout serverPill = makeGlassPill();
-        GloryArtwork.ThumbnailView serverThumb =
-                new GloryArtwork.ThumbnailView(this, GloryArtwork.ThumbnailView.KIND_SERVER);
-        if (topServer != null) {
-            serverThumb.setServerIconBase64(topServer.iconBase64);
-        }
-        LinearLayout.LayoutParams sthumbLp = new LinearLayout.LayoutParams(dp(26), dp(26));
-        sthumbLp.rightMargin = dp(8);
-        serverPill.addView(serverThumb, sthumbLp);
-
-        LinearLayout serverMeta = new LinearLayout(this);
-        serverMeta.setOrientation(LinearLayout.VERTICAL);
-        TextView serverTitle = text(
-                topServer != null ? topServer.name : "Multiplayer",
-                12,
-                color(R.color.glory_ink),
-                true);
-        serverTitle.setSingleLine(true);
-        serverTitle.setEllipsize(TextUtils.TruncateAt.END);
-        TextView serverSub = text(
-                topServer != null ? topServer.ip : "Add server address",
-                10,
-                color(R.color.glory_ink_soft),
-                false);
-        serverSub.setSingleLine(true);
-        serverSub.setEllipsize(TextUtils.TruncateAt.END);
-        serverMeta.addView(serverTitle);
-        serverMeta.addView(serverSub);
-        serverPill.addView(serverMeta);
-        serverPill.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (topServer != null && snapshot.resourcesPrepared) {
-                    launchServer(topServer.ip);
-                } else {
-                    selectTab(Tab.WORLDS);
-                }
-            }
-        });
-        LinearLayout.LayoutParams p3Lp = new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-        pillRow.addView(serverPill, p3Lp);
-
-        col.addView(pillRow, pillRowLp);
-
-        // 3. Centered Glowing Emerald LAUNCH GAME Button
         FrameLayout ctaWrap = new FrameLayout(this);
-        TextView ctaBtn = new TextView(this);
-        ctaBtn.setText(snapshot.resourcesPrepared
-                ? getString(R.string.glory_launch_game)
-                : getString(R.string.glory_complete_setup));
-        ctaBtn.setTypeface(semiboldFont);
-        ctaBtn.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        ctaBtn.setLetterSpacing(0.04f);
-        ctaBtn.setTextColor(color(R.color.glory_ink));
-        ctaBtn.setGravity(Gravity.CENTER);
-        ctaBtn.setPadding(dp(44), dp(12), dp(44), dp(12));
-        ctaBtn.setBackground(GloryArtwork.emeraldCta(this));
-        ctaBtn.setOnClickListener(new View.OnClickListener() {
+        TextView ctaButton = new TextView(this);
+        ctaButton.setText(R.string.glory_launch_game);
+        ctaButton.setTypeface(semiboldFont);
+        ctaButton.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
+        ctaButton.setLetterSpacing(0.04f);
+        ctaButton.setTextColor(color(R.color.glory_ink));
+        ctaButton.setGravity(Gravity.CENTER);
+        ctaButton.setPadding(dp(44), dp(12), dp(44), dp(12));
+        ctaButton.setBackground(GloryArtwork.emeraldCta(this));
+        ctaButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 launchGameFresh();
             }
         });
-        FrameLayout.LayoutParams ctaLp = new FrameLayout.LayoutParams(
+        ctaWrap.addView(ctaButton, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT,
-                Gravity.CENTER);
-        ctaWrap.addView(ctaBtn, ctaLp);
-
-        LinearLayout.LayoutParams ctaWrapLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        ctaWrapLp.bottomMargin = dp(10);
-        col.addView(ctaWrap, ctaWrapLp);
-
-        // 4. Bottom 3 Interactive Cards Row: Mods | Shaders | Touch Controls & Diagnostics
-        LinearLayout bottomRow = new LinearLayout(this);
-        bottomRow.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout.LayoutParams bottomLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-        // Card 1: Mods
-        LinearLayout modsCard = makeBottomCard(
-                GloryArtwork.IconKind.WRENCH, "Mods", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        selectTab(Tab.MODS);
-                    }
-                });
-        final GloryData.ModSummary primaryMod = snapshot.primaryMod();
-        String modsLine;
-        if (snapshot.mods.isEmpty()) {
-            modsLine = "No mods installed • Tap to import";
-        } else {
-            int enabledCount = snapshot.enabledModsCount();
-            String badge = primaryMod != null ? primaryMod.title : "";
-            modsLine = enabledCount + "/" + snapshot.mods.size() + " Active"
-                    + (badge.isEmpty() ? "" : " • " + badge);
-        }
-        TextView modsSub = text(modsLine, 11, color(R.color.glory_ink_soft), false);
-        modsSub.setSingleLine(true);
-        modsSub.setEllipsize(TextUtils.TruncateAt.END);
-        modsCard.addView(modsSub);
-
-        LinearLayout modsFooter = new LinearLayout(this);
-        modsFooter.setOrientation(LinearLayout.HORIZONTAL);
-        modsFooter.setGravity(Gravity.CENTER_VERTICAL);
-        LinearLayout.LayoutParams modsFooterLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        modsFooterLp.topMargin = dp(8);
-        TextView nativeTag = text(
-                snapshot.nativeBuildStatus, 10, color(R.color.glory_emerald), true);
-        nativeTag.setSingleLine(true);
-        nativeTag.setEllipsize(TextUtils.TruncateAt.END);
-        modsFooter.addView(nativeTag, new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        if (primaryMod != null) {
-            modsFooter.addView(makeTogglePill(primaryMod.enabled, new Runnable() {
-                @Override
-                public void run() {
-                    toggleMod(primaryMod);
-                }
-            }));
-        }
-        modsCard.addView(modsFooter, modsFooterLp);
-
-        LinearLayout.LayoutParams c1Lp = new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-        c1Lp.rightMargin = dp(10);
-        bottomRow.addView(modsCard, c1Lp);
-
-        // Card 2: Shaders
-        LinearLayout shadersCard = makeBottomCard(
-                GloryArtwork.IconKind.STAR, "Shaders", new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        selectTab(Tab.SHADERS);
-                    }
-                });
-        TextView shadersSub = text(
-                snapshot.graphics.shaderDisplayName() + " • " + snapshot.graphics.resolutionScale + "%",
-                11,
-                color(R.color.glory_ink_soft),
-                false);
-        shadersSub.setSingleLine(true);
-        shadersSub.setEllipsize(TextUtils.TruncateAt.END);
-        shadersCard.addView(shadersSub);
-
-        LinearLayout scaleRow = new LinearLayout(this);
-        scaleRow.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout.LayoutParams scaleRowLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        scaleRowLp.topMargin = dp(6);
-        int[] quickScales = {50, 75, 100};
-        for (int i = 0; i < quickScales.length; i++) {
-            final int pct = quickScales[i];
-            boolean on = snapshot.graphics.resolutionScale == pct;
-            TextView chip = makeChip(pct + "%", on, new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    updateGraphicsSetting("resolutionScale", Integer.toString(pct));
-                }
-            });
-            LinearLayout.LayoutParams chipLp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            if (i > 0) {
-                chipLp.leftMargin = dp(5);
-            }
-            scaleRow.addView(chip, chipLp);
-        }
-        shadersCard.addView(scaleRow, scaleRowLp);
-
-        ProgressBar scaleBar = new ProgressBar(
-                this, null, android.R.attr.progressBarStyleHorizontal);
-        scaleBar.setMax(200);
-        scaleBar.setProgress(snapshot.graphics.resolutionScale);
-        GradientDrawable barBg = new GradientDrawable();
-        barBg.setColor(0x30FFFFFF);
-        barBg.setCornerRadius(dp(4));
-        GradientDrawable barFill = new GradientDrawable(
-                GradientDrawable.Orientation.LEFT_RIGHT,
-                new int[] {color(R.color.glory_emerald), 0xFF34D399});
-        barFill.setCornerRadius(dp(4));
-        android.graphics.drawable.ClipDrawable clip = new android.graphics.drawable.ClipDrawable(
-                barFill, Gravity.START, android.graphics.drawable.ClipDrawable.HORIZONTAL);
-        android.graphics.drawable.LayerDrawable barLayers =
-                new android.graphics.drawable.LayerDrawable(
-                        new android.graphics.drawable.Drawable[] {barBg, clip});
-        barLayers.setId(0, android.R.id.background);
-        barLayers.setId(1, android.R.id.progress);
-        scaleBar.setProgressDrawable(barLayers);
-        LinearLayout.LayoutParams barLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, dp(6));
-        barLp.topMargin = dp(6);
-        shadersCard.addView(scaleBar, barLp);
-
-        LinearLayout.LayoutParams c2Lp = new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-        c2Lp.rightMargin = dp(10);
-        bottomRow.addView(shadersCard, c2Lp);
-
-        // Card 3: Touch Controls & Diagnostics
-        LinearLayout controlsCard = makeBottomCard(
-                GloryArtwork.IconKind.SLIDERS,
-                "Touch Controls & Diagnostics",
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        selectTab(Tab.CONTROLS);
-                    }
-                });
-        String fpsText = snapshot.graphics.maxFps >= 260
-                ? "Unlim FPS"
-                : (snapshot.graphics.maxFps + " FPS");
-        TextView ctrlSub = text(
-                snapshot.touch.movementLabel() + " • " + snapshot.touch.interactLabel()
-                        + " • " + fpsText,
-                11,
-                color(R.color.glory_ink_soft),
-                false);
-        ctrlSub.setSingleLine(true);
-        ctrlSub.setEllipsize(TextUtils.TruncateAt.END);
-        controlsCard.addView(ctrlSub);
-
-        LinearLayout quickBadgeRow = new LinearLayout(this);
-        quickBadgeRow.setOrientation(LinearLayout.HORIZONTAL);
-        LinearLayout.LayoutParams qbLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        qbLp.topMargin = dp(8);
-        TextView touchChip = makeChip("Controls", false, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                selectTab(Tab.CONTROLS);
-            }
-        });
-        TextView diagChip = makeChip(
-                snapshot.crashCount > 0 ? (snapshot.crashCount + " Crash") : "Diagnostics",
-                snapshot.crashCount == 0,
-                new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        selectTab(Tab.DIAGNOSTICS);
-                    }
-                });
-        LinearLayout.LayoutParams dcLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        dcLp.leftMargin = dp(6);
-        quickBadgeRow.addView(touchChip);
-        quickBadgeRow.addView(diagChip, dcLp);
-        controlsCard.addView(quickBadgeRow, qbLp);
-
-        LinearLayout.LayoutParams c3Lp = new LinearLayout.LayoutParams(
-                0, ViewGroup.LayoutParams.MATCH_PARENT, 1f);
-        bottomRow.addView(controlsCard, c3Lp);
-
-        col.addView(bottomRow, bottomLp);
-
-        scroll.addView(col);
-        return scroll;
+                Gravity.CENTER));
+        home.addView(ctaWrap, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        return home;
     }
 
     // ---- Tab 1: WORLDS & SERVERS ----
@@ -1469,92 +1115,6 @@ public final class LauncherActivity extends Activity {
         return panel;
     }
 
-    // ---- Tab 5: DIAGNOSTICS ----
-
-    private View buildDiagnosticsTab() {
-        LinearLayout panel = makeSectionPanel();
-
-        LinearLayout header = new LinearLayout(this);
-        header.setOrientation(LinearLayout.HORIZONTAL);
-        header.setGravity(Gravity.CENTER_VERTICAL);
-        header.addView(text("System & Diagnostics", 15, color(R.color.glory_ink), true),
-                new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-
-        if (HorizonImport.installed(this)) {
-            TextView horizonBtn = makeChip("Import Horizon Android", false, new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        startActivityForResult(HorizonImport.picker(), PICK_HORIZON);
-                    } catch (ActivityNotFoundException ignored) {
-                        toast("No folder picker available on this device.");
-                    }
-                }
-            });
-            LinearLayout.LayoutParams hLp = new LinearLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-            hLp.rightMargin = dp(6);
-            header.addView(horizonBtn, hLp);
-        }
-
-        TextView openFolderBtn = makeChip("Open Game Folder", false, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                openGameSubfolder(null);
-            }
-        });
-        LinearLayout.LayoutParams oLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        oLp.rightMargin = dp(6);
-        header.addView(openFolderBtn, oLp);
-
-        header.addView(makeChip("Export / Share ZIP", true, new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                startActivity(new Intent(LauncherActivity.this, DiagnosticsActivity.class));
-            }
-        }));
-        panel.addView(header);
-
-        // Summary line
-        String version = apkVersionName();
-        String summaryText = String.format(
-                Locale.US,
-                "App v%s  •  Storage: %s  •  Resources: %s  •  Crashes: %d  •  %s",
-                version,
-                snapshot.usingSharedStorage ? "Shared (Documents/Starling)" : "App Private",
-                snapshot.resourcesPrepared ? "26.3 Ready" : "Needs Setup",
-                snapshot.crashCount,
-                snapshot.sessionStatus);
-        TextView summary = text(summaryText, 11, color(R.color.glory_ink_soft), false);
-        LinearLayout.LayoutParams sumLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        sumLp.topMargin = dp(8);
-        sumLp.bottomMargin = dp(8);
-        panel.addView(summary, sumLp);
-
-        TextView logHeader = text("logs/latest.log", 12, color(R.color.glory_emerald), true);
-        panel.addView(logHeader);
-
-        ScrollView logScroll = new ScrollView(this);
-        logScroll.setBackground(GloryArtwork.glassCard(
-                this, 0xCC090C11, color(R.color.glory_border_subtle), 10));
-        logScroll.setPadding(dp(10), dp(10), dp(10), dp(10));
-        TextView logText = new TextView(this);
-        logText.setTypeface(Typeface.MONOSPACE);
-        logText.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10.5f);
-        logText.setTextColor(0xFFCBD5E1);
-        logText.setText(snapshot.latestLogTail);
-        logText.setTextIsSelectable(true);
-        logScroll.addView(logText);
-
-        LinearLayout.LayoutParams logLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, 0, 1f);
-        logLp.topMargin = dp(6);
-        panel.addView(logScroll, logLp);
-        return panel;
-    }
-
     // ---- Dialogs & Mutations ----
 
     private void showAccountDialog() {
@@ -2076,46 +1636,6 @@ public final class LauncherActivity extends Activity {
         return row;
     }
 
-    private LinearLayout makeGlassPill() {
-        LinearLayout pill = new LinearLayout(this);
-        pill.setOrientation(LinearLayout.HORIZONTAL);
-        pill.setGravity(Gravity.CENTER_VERTICAL);
-        pill.setPadding(dp(12), dp(9), dp(12), dp(9));
-        pill.setBackground(GloryArtwork.clickableGlassCard(
-                this, color(R.color.glory_pill_bg), color(R.color.glory_border), 12));
-        return pill;
-    }
-
-    private LinearLayout makeBottomCard(
-            GloryArtwork.IconKind iconKind, String title, View.OnClickListener onClick) {
-        LinearLayout card = new LinearLayout(this);
-        card.setOrientation(LinearLayout.VERTICAL);
-        card.setPadding(dp(13), dp(11), dp(13), dp(11));
-        card.setBackground(GloryArtwork.clickableGlassCard(
-                this, color(R.color.glory_surface), color(R.color.glory_border), 14));
-        card.setOnClickListener(onClick);
-
-        LinearLayout top = new LinearLayout(this);
-        top.setOrientation(LinearLayout.HORIZONTAL);
-        top.setGravity(Gravity.CENTER_VERTICAL);
-        ImageView iv = new ImageView(this);
-        iv.setImageDrawable(new GloryArtwork.NavIconDrawable(
-                this, iconKind, color(R.color.glory_ink), 16));
-        LinearLayout.LayoutParams ivLp = new LinearLayout.LayoutParams(dp(16), dp(16));
-        ivLp.rightMargin = dp(7);
-        top.addView(iv, ivLp);
-        TextView titleView = text(title, 13, color(R.color.glory_ink), true);
-        titleView.setSingleLine(true);
-        titleView.setEllipsize(TextUtils.TruncateAt.END);
-        top.addView(titleView);
-
-        LinearLayout.LayoutParams topLp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        topLp.bottomMargin = dp(4);
-        card.addView(top, topLp);
-        return card;
-    }
-
     private TextView makeChip(String label, boolean active, View.OnClickListener onClick) {
         TextView chip = new TextView(this);
         chip.setText(label);
@@ -2247,15 +1767,6 @@ public final class LauncherActivity extends Activity {
 
     private void toast(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
-    }
-
-    private String apkVersionName() {
-        try {
-            String v = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-            return v == null ? "dev" : v;
-        } catch (PackageManager.NameNotFoundException e) {
-            return "dev";
-        }
     }
 
     // ---- Window & System Bars ----

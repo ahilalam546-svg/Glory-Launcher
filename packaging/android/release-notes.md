@@ -1,11 +1,11 @@
-**Starling 0.8.0: the first release of Starling and Horizon Android together.**
+**Glory Launcher 0.8.0: the first release of Starling and Horizon Android together.**
 
 Horizon Android and Starling are now one app, in [starling-client/starling](https://github.com/starling-client/starling). Starling, formerly Horizon Android, is co-founded by [JuanLuci](https://github.com/JuanLuci), founder of Starling, and [Vasysik](https://github.com/Vasysik), founder of Horizon Android. Thanks to Vasysik for the support for older phones, Diagnostics, account profiles with Ely.by, the terrain work on Adreno and the game folder in the Files app in this release.
 
 ## Install
 
 - **Already have Starling:** tap **Update** inside the game.
-- **New here, or coming from Horizon Android:** download the APK for your phone below and open it. Almost every phone takes **`starling-0.8.0-arm64-v8a.apk`**. Older 32-bit phones take `armeabi-v7a`, and x86 tablets and emulators take `x86_64` or `x86`.
+- **New here, or coming from Horizon Android:** download the APK for your phone below and open it. Almost every phone takes **`glory-launcher-0.8.0-arm64-v8a.apk`**. Older 32-bit phones take `armeabi-v7a`, and x86 tablets and emulators take `x86_64` or `x86`.
 
 ## What's new in 0.8.0
 
