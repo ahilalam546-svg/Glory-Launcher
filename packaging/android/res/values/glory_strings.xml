@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="glory_title">GLORY LAUNCHER</string>
+    <string name="glory_nav_home">Home</string>
+    <string name="glory_nav_worlds">Worlds</string>
+    <string name="glory_nav_mods">Mods</string>
+    <string name="glory_nav_shaders">Shaders</string>
+    <string name="glory_nav_controls">Controls</string>
+    <string name="glory_launch_game">PLAY</string>
+    <string name="glory_complete_setup">PLAY</string>
+    <string name="glory_import_action">+ Import</string>
+    <string name="glory_import_success">Staged %1$s for install on next launch.</string>
+    <string name="glory_restarting">Opening the world with its mods…</string>
+</resources>

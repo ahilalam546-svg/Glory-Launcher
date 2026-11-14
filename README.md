@@ -28,11 +28,11 @@
 
 **Join us on [Discord](https://discord.gg/7xcp8Y5nkv)** for help, bug reports and news.
 
-**[Starling v0.8.0](https://github.com/starling-client/starling/releases/latest)**. Already have Starling? Tap **Update** inside the game. New here? Download `starling-0.8.0-arm64-v8a.apk` from [the releases page](https://github.com/starling-client/starling/releases) and open it on the phone (Android asks you to allow installing apps from your browser or file manager).
+**[Glory Launcher v0.8.0](https://github.com/starling-client/starling/releases/latest)**. Already have Glory Launcher? Tap **Update** inside the game. New here? Download `glory-launcher-0.8.0-arm64-v8a.apk` from [the releases page](https://github.com/starling-client/starling/releases) and open it on the phone (Android asks you to allow installing apps from your browser or file manager).
 
 **You need** Android 8 or newer, a compatible graphics driver, and about 2 GB free. See [Android architectures](docs/android-armv7.md) for ABI, GPU and preparation limits; 32-bit x86 imports prepared resources. Sign in with a Microsoft account that owns Minecraft: Java Edition, or play offline (most servers need the sign-in). No computer: on the first start Starling downloads the game's files from Mojang's servers and prepares them on the phone, once (79 seconds on a POCO F6 Pro, longer on slower phones). Go fishing or change the settings while it works.
 
-Development happens in [starling-client/starling](https://github.com/starling-client/starling), on the `starling` branch, where Starling and Horizon Android are now one app. Builds of every push there are **Starling Preview**, in [GitHub Actions](https://github.com/starling-client/starling/actions/workflows/android.yml) (the `starling-apk-<abi>` artifact of a run; GitHub asks you to sign in to download it): an app of its own, installed beside the release, with its own `StarlingPreview` folder and sign-in. You can also [build it from source](#build-from-source).
+Development happens in [starling-client/starling](https://github.com/starling-client/starling), on the `starling` branch, where Starling and Horizon Android are now one app. Builds of every push there are **Glory Launcher Preview builds**, in [GitHub Actions](https://github.com/starling-client/starling/actions/workflows/android.yml) (the `glory-launcher-apk-<abi>` artifact of a run; GitHub asks you to sign in to download it): an app of its own, installed beside the release, with its own `StarlingPreview` folder and sign-in. You can also [build it from source](#build-from-source).
 
 ## What works today
 

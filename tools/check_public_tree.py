@@ -14,6 +14,8 @@ ORIGINAL_ANDROID = {
     "packaging/android/java/io/github/juanluci/starling/StarlingActivity.java",
     "packaging/android/java/io/github/juanluci/starling/GameActivity.java",
     "packaging/android/java/io/github/juanluci/starling/LauncherActivity.java",
+    "packaging/android/java/io/github/juanluci/starling/GloryData.java",
+    "packaging/android/java/io/github/juanluci/starling/GloryArtwork.java",
     "packaging/android/java/io/github/juanluci/starling/DiagnosticsActivity.java",
     "packaging/android/java/io/github/juanluci/starling/StartupRecovery.java",
     "packaging/android/java/io/github/juanluci/starling/TextMirror.java",

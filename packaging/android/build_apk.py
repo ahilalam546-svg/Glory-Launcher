@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build Starling's Android APK (Horizon on Android): horizon-android as a
+"""Build the Glory Launcher Android APK (Horizon on Android): horizon-android as a
 NativeActivity library.
 
 The APK holds the game library, the launcher icon, Starling Visuals and what prepares the game
@@ -11,8 +11,8 @@ horizon-prepare makes from the player's own copy are made on the phone, or copie
     python3 packaging/android/build_apk.py --no-build      # package the library built last
     python3 packaging/android/build_apk.py --install       # and adb install it
     python3 packaging/android/build_apk.py --zip           # and a zip of it to send
-    python3 packaging/android/build_apk.py --dev           # Starling Dev, beside the release
-    python3 packaging/android/build_apk.py --preview       # Starling Preview, the organisation's CI build
+    python3 packaging/android/build_apk.py --dev           # Glory Launcher Dev, beside the release
+    python3 packaging/android/build_apk.py --preview       # Glory Launcher Preview, the organisation's CI build
 
 Needs the Android SDK (ANDROID_HOME, else the default folder) with the build-tools, platform and
 NDK pinned below, the aarch64-linux-android Rust target, cargo-ndk and a JDK (javac, keytool,
@@ -35,13 +35,12 @@ ROOT = Path(__file__).resolve().parents[2]
 HERE = Path(__file__).resolve().parent
 
 APPLICATION_ID = "io.github.juanluci.starling"
-LABEL = "Starling"
-# --dev and --preview: an app of its own, installed beside the release (which a build signed with
-# another key cannot install over), with its own folder (StarlingActivity.sharedFolder: StarlingDev,
-# StarlingPreview) and its own sign-in and game files. Preview is what starling-client/starling's
-# CI builds, signed with that repository's test key: the release key stays out of it.
+LABEL = "Glory Launcher"
+# --dev and --preview remain separate packages, installed beside the release (which a build signed
+# with another key cannot install over), with their own sign-in and game files. All variants use
+# the requested Glory Launcher app name; only their application IDs differ.
 DEV_SUFFIX = ".dev"
-VARIANTS = {"dev": (DEV_SUFFIX, " Dev"), "preview": (".preview", " Preview")}
+VARIANTS = {"dev": (DEV_SUFFIX, ""), "preview": (".preview", "")}
 VERSION_NAME = "0.8.0"
 VERSION_CODE = 13
 MIN_SDK = 26  # AAudio (cpal)
@@ -315,11 +314,11 @@ def main():
     )
     parser.add_argument(
         "--dev", action="store_true",
-        help=f"Starling Dev ({APPLICATION_ID}{DEV_SUFFIX}), installed beside the release",
+        help=f"Glory Launcher Dev ({APPLICATION_ID}{DEV_SUFFIX}), installed beside the release",
     )
     parser.add_argument(
         "--preview", action="store_true",
-        help=f"Starling Preview ({APPLICATION_ID}{VARIANTS['preview'][0]}), the organisation's CI build",
+        help=f"Glory Launcher Preview ({APPLICATION_ID}{VARIANTS['preview'][0]}), the organisation's CI build",
     )
     parser.add_argument("--abi", choices=TARGETS, default=ABI, help="Android ABI (default: arm64-v8a)")
     args = parser.parse_args()
@@ -362,7 +361,7 @@ def main():
     add_code(out / "base.apk", libraries, dex, out / "unsigned.apk", args.abi)
     aligned = out / "aligned.apk"
     run(tool(build_tools, "zipalign"), "-P", "16", "-f", "4", out / "unsigned.apk", aligned)
-    apk = out / f"starling{'-' + variant if variant else ''}-{VERSION_NAME}-{args.abi}.apk"
+    apk = out / f"glory-launcher{'-' + variant if variant else ''}-{VERSION_NAME}-{args.abi}.apk"
     sign(build_tools, aligned, apk, out)
     print(apk)
     if args.zip:

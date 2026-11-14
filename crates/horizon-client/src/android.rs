@@ -961,6 +961,22 @@ fn command_line(home: &Path) -> (Vec<String>, Vec<(String, String)>) {
     (args, env)
 }
 
+/// One-shot launch arguments written by `LauncherActivity` (such as `--quickPlaySingleplayer`
+/// or `--quickPlayMultiplayer`) so picking a world or server from the dashboard jumps straight
+/// in without persisting across later launches.
+fn consume_launch_args(home: &Path, args: &mut Vec<String>) {
+    let path = home.join("glory-launch-args.txt");
+    let Ok(text) = std::fs::read_to_string(&path) else {
+        return;
+    };
+    let _ = std::fs::remove_file(&path);
+    for line in text.lines().map(str::trim) {
+        if !line.is_empty() && !line.starts_with('#') {
+            args.push(line.to_owned());
+        }
+    }
+}
+
 /// The game's console lines in logcat, under the tag `starling`.
 fn logcat(level: log::Level, message: &str) {
     use std::ffi::CString;
@@ -1236,7 +1252,8 @@ pub fn main(app: AndroidApp) {
     let _ = std::fs::create_dir_all(&private);
     let mut notes = Vec::new();
     let home = game_folder(&private, &mut notes);
-    let (args, env) = command_line(&private);
+    let (mut args, env) = command_line(&private);
+    consume_launch_args(&private, &mut args);
     // SAFETY: no other thread of ours runs yet; the game reads these from its threads afterwards.
     unsafe {
         std::env::set_var("HORIZON_HOME", &home);

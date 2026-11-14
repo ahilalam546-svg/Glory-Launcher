@@ -6,4 +6,9 @@
         <item name="android:windowSplashScreenBackground">#FF16161C</item>
         <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
     </style>
+    <style name="Glory.Launcher" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        <item name="android:windowBackground">@color/glory_bg</item>
+        <item name="android:windowSplashScreenBackground">#FF0B0E14</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+    </style>
 </resources>

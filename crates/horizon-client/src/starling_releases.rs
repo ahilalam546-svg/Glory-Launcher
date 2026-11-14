@@ -6,7 +6,8 @@
 //! before, and still do until the merged one. Both are asked, the organisation's first, so an
 //! install follows the releases wherever they come out. The organisation's repository also holds
 //! Horizon Android's releases (its APKs are named after it) and preview builds of Starling
-//! (`starling-preview-...`): only an APK named `starling-<version>-...` is an update.
+//! (`glory-launcher-preview-...`): Glory Launcher APKs use `glory-launcher-<version>-...`; the
+//! older `starling-<version>-...` name stays accepted for already-published releases.
 
 /// The repositories, as GitHub's API names them, the organisation's first.
 pub const REPOSITORIES: [&str; 2] = ["starling-client/starling", "JuanLuci/starling"];
@@ -78,11 +79,17 @@ fn update_for_abi(latest: &serde_json::Value, current: &str, abi: &str) -> Optio
         return None;
     }
     let version = tag.trim_start_matches('v');
-    let name = format!("starling-{version}-{abi}.apk");
-    let apk = latest["assets"]
-        .as_array()?
+    let name = format!("glory-launcher-{version}-{abi}.apk");
+    let legacy_name = format!("starling-{version}-{abi}.apk");
+    let assets = latest["assets"].as_array()?;
+    let apk = assets
         .iter()
-        .find(|a| a["name"].as_str() == Some(name.as_str()))?;
+        .find(|a| a["name"].as_str() == Some(name.as_str()))
+        .or_else(|| {
+            assets
+                .iter()
+                .find(|a| a["name"].as_str() == Some(legacy_name.as_str()))
+        })?;
     Some(Update {
         version: version.to_owned(),
         name: apk["name"].as_str()?.to_owned(),
@@ -320,22 +327,23 @@ mod tests {
     }
 
     #[test]
-    fn only_starlings_own_apk_is_an_update() {
+    fn only_the_glory_launcher_release_apk_is_an_update() {
         // Horizon Android's last release, the organisation's latest today: not Starling's.
         let horizon =
             json!({"tag_name": "v0.7.8", "assets": [asset("Horizon-Android-0.7.8-arm64-v8a.apk")]});
         assert_eq!(update_for_abi(&horizon, "0.2.2", "arm64-v8a"), None);
         // A preview build is another app, signed with another key.
-        let preview = json!({"tag_name": "v0.8.0", "assets": [asset("starling-preview-0.8.0-arm64-v8a.apk")]});
+        let preview = json!({"tag_name": "v0.8.0", "assets": [asset("glory-launcher-preview-0.8.0-arm64-v8a.apk")]});
         assert_eq!(update_for_abi(&preview, "0.2.2", "arm64-v8a"), None);
         let release = json!({"tag_name": "v0.8.0", "assets": [
-            asset("starling-preview-0.8.0-arm64-v8a.apk"),
+            asset("glory-launcher-preview-0.8.0-arm64-v8a.apk"),
             asset("StarlingVisuals.zip"),
             asset("starling-0.8.0-arm64-v8a.apk"),
+            asset("glory-launcher-0.8.0-arm64-v8a.apk"),
         ]});
         let update = update_for_abi(&release, "0.2.2", "arm64-v8a").unwrap();
         assert_eq!(update.version, "0.8.0");
-        assert_eq!(update.name, "starling-0.8.0-arm64-v8a.apk");
+        assert_eq!(update.name, "glory-launcher-0.8.0-arm64-v8a.apk");
         assert_eq!(update.sha256.as_deref(), Some("ab"));
         assert_eq!(
             update_for_abi(&release, "0.8.0", "arm64-v8a"),

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="glory_bg">#FF0B0E14</color>
+    <color name="glory_bg_deep">#FF07090D</color>
+    <color name="glory_surface">#D9131924</color>
+    <color name="glory_surface_elevated">#EB192231</color>
+    <color name="glory_sidebar_bg">#E6101722</color>
+    <color name="glory_pill_bg">#D4161F2D</color>
+    <color name="glory_border">#28FFFFFF</color>
+    <color name="glory_border_subtle">#18FFFFFF</color>
+    <color name="glory_border_emerald">#6610B981</color>
+    <color name="glory_ink">#FFF8FAFC</color>
+    <color name="glory_ink_soft">#FF94A3B8</color>
+    <color name="glory_ink_muted">#FF64748B</color>
+    <color name="glory_emerald">#FF10B981</color>
+    <color name="glory_emerald_dark">#FF059669</color>
+    <color name="glory_emerald_glow">#4210B981</color>
+    <color name="glory_violet">#FF7C3AED</color>
+    <color name="glory_amber">#FFFBBF24</color>
+    <color name="glory_danger">#FFEF4444</color>
+</resources>
