@@ -2,6 +2,7 @@
 
 import re
 import shutil
+import struct
 import subprocess
 import tempfile
 import unittest
@@ -17,6 +18,27 @@ NS = "{http://schemas.android.com/apk/res/android}"
 
 
 class GloryManifestAndResources(unittest.TestCase):
+    def test_glory_branding_and_supplied_logo_are_used(self):
+        build = (ANDROID / "build_apk.py").read_text(encoding="utf-8")
+        self.assertIn('LABEL = "Glory Launcher"', build)
+        self.assertIn('VARIANTS = {"dev": (DEV_SUFFIX, ""), "preview": (".preview", "")}', build)
+
+        manifest = ET.parse(ANDROID / "AndroidManifest.xml").getroot()
+        app = manifest.find("application")
+        self.assertEqual(app.get(NS + "label"), "@LABEL@")
+        self.assertEqual(app.get(NS + "icon"), "@mipmap/ic_launcher")
+
+        strings = ET.parse(ANDROID / "res/values/glory_strings.xml").getroot()
+        values = {item.get("name"): item.text for item in strings.findall("string")}
+        self.assertEqual(values["glory_launch_game"], "PLAY")
+        self.assertEqual(values["glory_complete_setup"], "PLAY")
+
+        for density, expected in (("mdpi", 48), ("xxhdpi", 128), ("xxxhdpi", 256)):
+            icon = ANDROID / f"res/mipmap-{density}/ic_launcher.png"
+            data = icon.read_bytes()
+            self.assertEqual(data[:8], b"\x89PNG\r\n\x1a\n")
+            self.assertEqual(struct.unpack(">II", data[16:24]), (expected, expected))
+
     def test_launcher_activity_runs_as_persistent_landscape_dashboard(self):
         manifest = ET.parse(ANDROID / "AndroidManifest.xml").getroot()
         app = manifest.find("application")

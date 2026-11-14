@@ -75,7 +75,7 @@ public final class WorkService extends Service {
                     (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
             if (manager != null) {
                 manager.createNotificationChannel(new NotificationChannel(
-                        CHANNEL, "Starling at work", NotificationManager.IMPORTANCE_LOW));
+                        CHANNEL, "Glory Launcher", NotificationManager.IMPORTANCE_LOW));
             }
             builder = new Notification.Builder(this, CHANNEL);
         } else {
@@ -83,7 +83,7 @@ public final class WorkService extends Service {
         }
         Notification notification = builder
                 .setSmallIcon(getApplicationInfo().icon)
-                .setContentTitle("Starling")
+                .setContentTitle("Glory Launcher")
                 .setContentText(line())
                 .setOngoing(true)
                 .build();
