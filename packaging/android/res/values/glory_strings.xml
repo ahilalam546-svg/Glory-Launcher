@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="glory_title">GLORY LAUNCHER</string>
+    <string name="glory_nav_home">Home</string>
+    <string name="glory_nav_worlds">Worlds</string>
+    <string name="glory_nav_mods">Mods</string>
+    <string name="glory_nav_shaders">Shaders</string>
+    <string name="glory_nav_controls">Controls</string>
+    <string name="glory_nav_diagnostics">Diagnostics</string>
+    <string name="glory_launch_game">LAUNCH GAME</string>
+    <string name="glory_complete_setup">COMPLETE SETUP</string>
+    <string name="glory_status_ready">Minecraft Java 26.3 Ready</string>
+    <string name="glory_status_setup">Minecraft Java 26.3 Setup Required</string>
+    <string name="glory_import_action">+ Import</string>
+    <string name="glory_import_success">Staged %1$s for install on next launch.</string>
+    <string name="glory_restarting">Opening the world with its mods…</string>
+</resources>

@@ -44,15 +44,19 @@
         android:appCategory="game"
         android:requestLegacyExternalStorage="true"
         android:extractNativeLibs="true">
-        <!-- A task of its own, out of the recents: the game's task stays the game's. -->
+        <!-- Glory Launcher dashboard in its own :launcher process: renders before native loading
+             and stays open when GameActivity exits cleanly. -->
         <activity
             android:name="io.github.juanluci.starling.LauncherActivity"
             android:exported="true"
             android:process=":launcher"
             android:taskAffinity="@APPLICATION_ID@.launcher"
-            android:excludeFromRecents="true"
-            android:noHistory="true"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar">
+            android:launchMode="singleTask"
+            android:screenOrientation="sensorLandscape"
+            android:resizeableActivity="false"
+            android:windowSoftInputMode="adjustPan"
+            android:theme="@style/Glory.Launcher"
+            android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|screenLayout|fontScale|uiMode|orientation|density|screenSize|smallestScreenSize|layoutDirection|colorMode|fontWeightAdjustment|grammaticalGender">
             <!-- Packs, worlds, shader packs, mods and prepared resources as .zip, opened with
                  or shared to Starling. -->
             <intent-filter>

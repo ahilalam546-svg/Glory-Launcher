@@ -2,4 +2,8 @@
 <resources>
     <!-- The game's window: black, without a title, over the whole screen. -->
     <style name="Starling.Game" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen" />
+    <!-- Glory Launcher dashboard window: obsidian glass, fullscreen, no title bar. -->
+    <style name="Glory.Launcher" parent="@android:style/Theme.Black.NoTitleBar.Fullscreen">
+        <item name="android:windowBackground">@color/glory_bg</item>
+    </style>
 </resources>
